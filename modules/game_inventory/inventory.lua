@@ -570,3 +570,11 @@ function onBlessingsChange(blessings, blessVisualState)
         blessedButton:setImageSource('/images/inventory/button_blessings_green')
     end
 end
+
+function onLeftSlotChange(itemId)
+    if not g_game.isOnline() then
+        return
+    end
+
+    modules.game_interface.StatsBar.onUpdateProficiencyWidget(itemId == 0)
+end

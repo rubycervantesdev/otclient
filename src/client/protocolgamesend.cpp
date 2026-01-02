@@ -1039,7 +1039,7 @@ void ProtocolGame::sendInspectionNormalObject(const Position& position)
 
 void ProtocolGame::sendInspectionObject(const Otc::InspectObjectTypes inspectionType, const uint16_t itemId, const uint8_t itemCount)
 {
-    if (inspectionType != Otc::INSPECT_NPCTRADE && inspectionType != Otc::INSPECT_CYCLOPEDIA) {
+    if (inspectionType != Otc::INSPECT_NPCTRADE && inspectionType != Otc::INSPECT_CYCLOPEDIA && inspectionType != Otc::INSPECT_PROFICIENCY) {
         return;
     }
 
@@ -1272,7 +1272,7 @@ void ProtocolGame::sendForgeAction(Otc::ForgeActions_t forgeAction, bool converg
 {
     const auto msg = std::make_shared<OutputMessage>();
     msg->addU8(Proto::ClientForgeEnter);
-    msg->addU8(static_cast<uint8_t>(forgeAction));    
+    msg->addU8(static_cast<uint8_t>(forgeAction));
     msg->addU8(convergence ? 1 : 0);
     msg->addU16(itemid1);
     msg->addU8(tier);
@@ -1289,7 +1289,7 @@ void ProtocolGame::sendForgeAction(Otc::ForgeActions_t forgeAction, bool converg
 void ProtocolGame::sendForgeHistory(uint32_t pageId)
 {
     const auto msg = std::make_shared<OutputMessage>();
-    msg->addU8(Proto::ClientForgeBrowseHistory);   
+    msg->addU8(Proto::ClientForgeBrowseHistory);
     msg->addU8(pageId);
     send(msg);
 }
@@ -1297,8 +1297,8 @@ void ProtocolGame::sendForgeHistory(uint32_t pageId)
 void ProtocolGame::sendResourceBalance()
 {
     const auto msg = std::make_shared<OutputMessage>();
-	msg->addU8(237); 
-	send(msg);
+    msg->addU8(237);
+    send(msg);
 }
 
 void ProtocolGame::sendRequestStoreOfferById(uint32_t offerId, const uint8_t sortOrder, const uint8_t serviceType)
@@ -1388,7 +1388,7 @@ void ProtocolGame::sendMarketBrowse(const uint8_t browseId, const uint16_t brows
         msg->addU8(browseId);
         if (browseType > 0) {
             msg->addU16(browseType);
-		// If browseId is 3 (browse item), send tier if item has classification
+            // If browseId is 3 (browse item), send tier if item has classification
             if (browseId == 3) {
                 const auto& thing = g_things.getThingType(browseType, ThingCategoryItem);
                 if (thing && thing->getClassification() > 0) {
@@ -1686,10 +1686,10 @@ void ProtocolGame::sendApplyWheelPoints(const std::vector<uint16_t>& pointsInves
 void ProtocolGame::sendGemAtelierAction(uint8_t action, uint8_t param1, uint16_t param2, bool param3)
 {
     const auto msg = std::make_shared<OutputMessage>();
- 
+
     msg->addU8(0xE7);
     msg->addU8(action);
- 
+
     uint8_t encodedParam = param1;
     if (action == 0 || action == 2 || action == 3) {
         if (encodedParam == 0 && param2 != 0) {

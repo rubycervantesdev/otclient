@@ -83,6 +83,7 @@ void Client::registerLuaFunctions()
     g_lua.bindSingletonFunction("g_things", "getThingTypes", &ThingTypeManager::getThingTypes, &g_things);
     g_lua.bindSingletonFunction("g_things", "findThingTypeByAttr", &ThingTypeManager::findThingTypeByAttr, &g_things);
     g_lua.bindSingletonFunction("g_things", "getProficiencyThings", &ThingTypeManager::getProficiencyThings, &g_things);
+    g_lua.bindSingletonFunction("g_things", "getCyclopediaItemName", &ThingTypeManager::getCyclopediaItemName, &g_things);
     g_lua.bindSingletonFunction("g_things", "getRaceData", &ThingTypeManager::getRaceData, &g_things);
     g_lua.bindSingletonFunction("g_things", "getRacesByName", &ThingTypeManager::getRacesByName, &g_things);
 

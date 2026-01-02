@@ -210,7 +210,7 @@ BonusDetailPanel < UIWidget
     anchors.left: parent.left
     margin-left: -2
     margin-top: -1
-    font: Verdana Bold-11px-wheel
+    font: Verdana Bold-11-px-lowspace
     color: #c0c0c0
     text-align: topLeft
     text-wrap: true
@@ -527,14 +527,19 @@ NewMainWindow
     margin-bottom: 12
     margin-right: 12
     on: true
+    $on:
+      image-clip: 0 0 43 20
+      text-offset: 0 2
     $!on:
       color: #dfdfdf88
       opacity: 0.8
       change-cursor-image: false
     $on pressed:
-      text-offset: 1 1
+      image-clip: 0 20 43 20
+      text-offset: 2 4
     $!on pressed:
-      text-offset: 0 1
+      image-clip: 0 0 43 20
+      text-offset: 0 2
     @onClick: modules.game_proficiency.WeaponProficiency:onCloseWindow(self)
 
   Button
@@ -547,14 +552,19 @@ NewMainWindow
     margin-right: 5
     tooltip-delayed: true
     on: true
+    $on:
+      image-clip: 0 0 43 20
+      text-offset: 0 2
     $!on:
       color: #dfdfdf88
       opacity: 0.8
       change-cursor-image: false
     $on pressed:
-      text-offset: 1 1
+      image-clip: 0 20 43 20
+      text-offset: 2 4
     $!on pressed:
-      text-offset: 0 1
+      image-clip: 0 0 43 20
+      text-offset: 0 2
     @onClick: modules.game_proficiency.WeaponProficiency:onResetWeapon(self)
 
   Button
@@ -567,14 +577,19 @@ NewMainWindow
     margin-right: 5
     tooltip-delayed: true
     on: false
+    $on:
+      image-clip: 0 0 43 20
+      text-offset: 0 2
     $!on:
       color: #dfdfdf88
       opacity: 0.8
       change-cursor-image: false
     $on pressed:
-      text-offset: 1 1
+      image-clip: 0 20 43 20
+      text-offset: 2 4
     $!on pressed:
-      text-offset: 0 1
+      image-clip: 0 0 43 20
+      text-offset: 0 2
     @onClick: modules.game_proficiency.WeaponProficiency:onApplyChanges(self)
 
   Button
@@ -587,13 +602,18 @@ NewMainWindow
     margin-right: 5
     tooltip-delayed: true
     on: false
+    $on:
+      image-clip: 0 0 43 20
+      text-offset: 0 2
     $!on:
       color: #dfdfdf88
       opacity: 0.8
       change-cursor-image: false
     $on pressed:
-      text-offset: 1 1
+      image-clip: 0 20 43 20
+      text-offset: 2 4
     $!on pressed:
-      text-offset: 0 1
+      image-clip: 0 0 43 20
+      text-offset: 0 2
     @onClick: modules.game_proficiency.WeaponProficiency:onApplyChanges(self)
         
