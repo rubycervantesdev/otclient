@@ -147,3 +147,27 @@ function isGoldCoin(itemId)
   end
   return false
 end
+
+function wrapTextByWords(str, n)
+  local result = {}
+  local i = 1
+  while i <= #str do
+    local chunk = str:sub(i, i + n - 1)
+    if #chunk < n then
+      table.insert(result, chunk)
+      break
+    end
+
+    local breakAt = chunk:match("^.*()[%s,%.;:!?%-]")
+    if breakAt and breakAt > 1 then
+      local chunk = str:sub(i, i + breakAt - 1)
+      chunk = chunk:gsub("[%s,%.;:!?%-]+$", "")
+      table.insert(result, chunk)
+      i = i + breakAt
+    else
+      table.insert(result, chunk)
+      i = i + n
+    end
+  end
+  return table.concat(result, "\n")
+end

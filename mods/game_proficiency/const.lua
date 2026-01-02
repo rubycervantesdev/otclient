@@ -293,6 +293,25 @@ PercentageTypes = {
     PERK_HEALING_SKILL_FLAT_DAMAGE
 }
 
+local WEAPON_SWORD = 1
+local WEAPON_AXE = 2
+local WEAPON_CLUB = 3
+local WEAPON_FIST = 4
+local WEAPON_BOW = 5
+local WEAPON_CROSSBOW = 6
+local WEAPON_WANDROD = 7
+local WEAPON_THROW = 8
+
+MarketCategory = {
+  WeaponsAll = 32,
+  Axes = 17,
+  Clubs = 18,
+  DistanceWeapons = 19,
+  Swords = 20,
+  WandsRods = 21,
+  FistWeapons = 27,
+}
+
 UnknownCategories = {
 	[WEAPON_AXE] 	  = MarketCategory.Axes,
 	[WEAPON_BOW]      = MarketCategory.DistanceWeapons,

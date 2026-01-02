@@ -771,7 +771,33 @@ function StatsBar.switchCurrentLayout()
         return
     end
 
-    StatsBar.onUpdateProficiencyData(lastProficiencyCache.itemCache, lastProficiencyCache.hasUnnusedPerk, lastProficiencyCache.thingType)
+    StatsBar.onUpdateProficiencyData(lastProficiencyCache.itemCache, lastProficiencyCache.hasUnnusedPerk,
+    lastProficiencyCache.thingType)
+end
+
+function onUpdateProficiencyWidget(hidePercentBar)
+  if not statsBar then return end
+
+  local statsPanel = statsBar:recursiveGetChildById('stats')
+  local proficiencyPanel = statsBar:recursiveGetChildById('proficiencyPanel')
+  local proficiencyButton = statsBar:recursiveGetChildById('proficiencyButton')
+
+  if not proficiencyPanel or not proficiencyButton then
+    return
+  end
+
+  if currentStats.dimension == 'parallel' or currentStats.dimension == "default" then
+    if hidePercentBar then
+      statsPanel:setMarginRight(45)
+      proficiencyPanel:setSize(tosize("0 13"))
+      proficiencyButton:setMarginRight(-4)
+    else
+      statsPanel:setMarginRight(-14)
+      proficiencyPanel:setSize(tosize("103 13"))
+      proficiencyPanel:setMarginRight(8)
+      proficiencyButton:setMarginRight(3)
+    end
+  end
 end
 
 function StatsBar.onUpdateProficiencyData(itemCache, hasUnnusedPerk, thingType)

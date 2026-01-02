@@ -35,15 +35,13 @@ ActionButton < UIButton
       visible: false
     Label
       id: text
-      size: 32 32
+      size: 30 27
       anchors.fill: prev
       text-wrap: true
       text-align: center
       margin: 1
       font: small-9px
       phantom: true
-      image-size: 32 32
-      image-offset: 0 0
       Panel
         id: gray
         anchors.fill: parent

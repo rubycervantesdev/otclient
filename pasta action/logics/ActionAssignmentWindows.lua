@@ -28,108 +28,145 @@ function assignSpell(button)
         alert('Action bar is locked')
         return
     end
+    
     local radio = UIRadioGroup.create()
     if ActionBarController.ui then
         ActionBarController:unloadHtml()
     end
+    
     ActionBarController:loadHtml('html/spells.html')
     ActionBarController.ui:show()
     ActionBarController.ui:raise()
     ActionBarController.ui:setTitle("Assign Spell to Action Button " .. button:getId())
+    
     local spellList = ActionBarController:findWidget("#spellList")
     local previewWidget = ActionBarController:findWidget("#preview")
     local imageWidget = ActionBarController:findWidget("#image")
     local paramLabel = ActionBarController:findWidget("#paramLabel")
     local paramText = ActionBarController:findWidget("#paramText")
+    local checkboxLearnt = ActionBarController:findWidget("#onlyLearnt")
+    
     ActionBarController:findWidget("#dev"):setVisible(dev)
     
-    -- Mapeamento de vocações do servidor para IDs de classe do cliente (spells)
-    local ServerToClientVocationMap = {
-      [1]  = {4, 8},  [11] = {4, 8},   -- Knight
-      [2]  = {3, 7},  [12] = {3, 7},   -- Paladin
-      [3]  = {1, 5},  [13] = {1, 5},   -- Sorcerer
-      [4]  = {2, 6},  [14] = {2, 6},   -- Druid
-      [5]  = {9, 10}, [15] = {9, 10},  -- Monk
-    }
-    
-    local serverVocation = player:getVocation()
-    local playerVocations = ServerToClientVocationMap[serverVocation] or {}
+    -- ✅ CORRIGIDO: Pega vocação direto do player
+    local playerVocation = player:getVocation()
     local playerLevel = player:getLevel()
     local spells = modules.gamelib.SpellInfo['Default']
     local defaultIconsFolder = SpelllistSettings['Default'].iconFile
-    local showAllSpells = (#playerVocations == 0)
     
-    print("DEBUG: Server Vocation =", serverVocation, "Client Vocations =", table.concat(playerVocations, ","), "Level =", playerLevel)
-    print("DEBUG: spells table exists?", spells ~= nil, "spells count:", spells and #spells or 0)
+    print("DEBUG: Player Vocation =", playerVocation, "Level =", playerLevel)
     
-    local spellCount = 0
-    local debugIndex = 0
-    for spellName, spellData in pairs(spells or {}) do
-        debugIndex = debugIndex + 1
-        if debugIndex <= 5 then
-            print("DEBUG SPELL:", spellName, "vocations:", table.concat(spellData.vocations or {}, ","))
-        end
+    -- Mapeamento simples de vocação do servidor para vocações de spell
+    local ServerToClientVocationMap = {
+      [1]  = {4, 8},     [11] = {4, 8},     -- Knight
+      [2]  = {3, 7},     [12] = {3, 7},     -- Paladin
+      [3]  = {1, 5},     [13] = {1, 5},     -- Sorcerer
+      [4]  = {2, 6},     [14] = {2, 6},     -- Druid
+      [5]  = {9, 10},    [15] = {9, 10},    -- Monk
+    }
+    
+    local playerVocations = ServerToClientVocationMap[playerVocation] or {}
+    
+    -- ✅ Função para popular a lista de spells
+    local function populateSpellList(showAll, filterByLevel)
+        spellList:destroyChildren()
+        local count = 0
         
-        local canUseSpell = showAllSpells
-        if not canUseSpell and spellData.vocations then
-            for _, spellVoc in ipairs(spellData.vocations) do
-                if table.contains(playerVocations, spellVoc) then
-                    canUseSpell = true
-                    break
+        for spellName, spellData in pairs(spells or {}) do
+            local canShow = showAll
+            if not canShow and spellData.vocations then
+                for _, spellVoc in ipairs(spellData.vocations) do
+                    if table.contains(playerVocations, spellVoc) then
+                        canShow = true
+                        break
+                    end
+                end
+            end
+            
+            local levelOk = not filterByLevel or not spellData.level or spellData.level <= playerLevel
+            
+            if canShow and levelOk then
+                count = count + 1
+                local widget = g_ui.createWidget('SpellPreview', spellList)
+                
+                local spellDisplayName = spellData.name or spellName
+                local iconId = Spells.getClientId(spellDisplayName)
+                local clip = iconId and Spells.getImageClip(iconId, 'Default') or "0 0 32 32"
+                
+                radio:addWidget(widget)
+                widget:setId(spellData.id)
+                widget:setText(spellDisplayName .. "\n" .. spellData.words)
+                widget.voc = spellData.vocations
+                widget.param = spellData.parameter
+                widget.source = defaultIconsFolder
+                widget.clip = clip
+                
+                widget.image:setImageSource(widget.source)
+                widget.image:setImageClip(widget.clip)
+                
+                if spellData.level then
+                    widget.levelLabel:setVisible(true)
+                    widget.levelLabel:setText(string.format("Level: %d", spellData.level))
+                    widget.image.gray:setVisible(playerLevel < spellData.level)
+                end
+                
+                local primaryGroup = Spells.getPrimaryGroup(spellData)
+                if primaryGroup ~= -1 then
+                    local offSet = (primaryGroup == 2 and 20) or (primaryGroup == 3 and 40) or 0
+                    widget.imageGroup:setImageClip(offSet .. " 0 20 20")
+                    widget.imageGroup:setVisible(true)
                 end
             end
         end
         
-        if canUseSpell then
-            spellCount = spellCount + 1
-            local widget = g_ui.createWidget('SpellPreview', spellList)
-            local spellDisplayName = spellData.name or spellName
-            local iconId = Spells.getClientId(spellDisplayName)
-            local clip = iconId and Spells.getImageClip(iconId, 'Default') or "0 0 32 32"
-            radio:addWidget(widget)
-            widget:setId(spellData.id)
-            widget:setText(spellDisplayName .. "\n" .. spellData.words)
-            widget.voc = spellData.vocations
-            widget.param = spellData.parameter
-            widget.source = defaultIconsFolder
-            widget.clip = clip
-            widget.image:setImageSource(widget.source)
-            widget.image:setImageClip(widget.clip)
-            if spellData.level then
-                widget.levelLabel:setVisible(true)
-                widget.levelLabel:setText(string.format("Level: %d", spellData.level))
-                widget.image.gray:setVisible(playerLevel < spellData.level)
-            end
-            local primaryGroup = Spells.getPrimaryGroup(spellData)
-            if primaryGroup ~= -1 then
-                local offSet = (primaryGroup == 2 and 20) or (primaryGroup == 3 and 40) or 0
-                widget.imageGroup:setImageClip(offSet .. " 0 20 20")
-                widget.imageGroup:setVisible(true)
-            end
+        print("DEBUG: Total spells shown =", count, "showAll =", showAll, "filterByLevel =", filterByLevel)
+        
+        -- Ordenar alfabeticamente
+        local widgets = spellList:getChildren()
+        table.sort(widgets, function(a, b)
+            return a:getText() < b:getText()
+        end)
+        for i, widget in ipairs(widgets) do
+            spellList:moveChildToIndex(widget, i)
         end
     end
     
-    print("DEBUG: Total spells shown =", spellCount)
-    local widgets = spellList:getChildren()
-    table.sort(widgets, function(a, b)
-        return a:getText() < b:getText()
-    end)
-    for i, widget in ipairs(widgets) do
-        spellList:moveChildToIndex(widget, i)
+    -- ✅ Popula lista inicial
+    populateSpellList(false, false)
+    
+    -- ✅ Checkbox "Only show learnt spells"
+    if checkboxLearnt then
+        checkboxLearnt.onCheckChange = function(widget, checked)
+            local devBtn = ActionBarController:findWidget("#dev")
+            local showAll = devBtn and devBtn:isOn() or false
+            populateSpellList(showAll, checked)
+        end
     end
+    
+    -- ✅ Botão "Show All"
+    ActionBarController:findWidget("#dev").onClick = function(widget)
+        local filterByLevel = checkboxLearnt and checkboxLearnt:isChecked() or false
+        populateSpellList(widget:isOn(), filterByLevel)
+    end
+    
+    -- Selecionar spell atual se houver
+    local widgets = spellList:getChildren()
     if button.cache.spellData and not button.cache.isRuneSpell then
         local spellData = button.cache.spellData
         local spellDisplayName = spellData.name or Spells.getSpellNameByWords(spellData.words)
         local iconId = spellDisplayName and Spells.getClientId(spellDisplayName)
         local clip = iconId and Spells.getImageClip(iconId, 'Default') or "0 0 32 32"
+        
         imageWidget:setImageSource(defaultIconsFolder)
         imageWidget:setImageClip(clip)
         paramLabel:setOn(spellData.parameter)
         paramText:setEnabled(spellData.parameter)
+        
         if spellData.parameter and button.cache.castParam then
             paramText:setText(button.cache.castParam)
             paramText:setCursorPos(#button.cache.castParam)
         end
+        
         for i, k in ipairs(widgets) do
             if k:getId() == tostring(spellData.id) then
                 radio:selectWidget(k)
@@ -138,6 +175,8 @@ function assignSpell(button)
             end
         end
     end
+    
+    -- Radio selection change
     radio.onSelectionChange = function(widget, selected)
         if selected then
             previewWidget:setText(selected:getText())
@@ -151,41 +190,49 @@ function assignSpell(button)
             end
         end
     end
+    
     if #widgets > 0 and not button.cache.spellData then
         radio:selectWidget(widgets[1])
     end
+    
+    -- Botões OK/Apply/Cancel
     local function cancelFunc()
         ActionBarController:unloadHtml()
     end
-
+    
     local function okFunc(destroy)
         local selected = radio:getSelectedWidget()
         if not selected then
             cancelFunc()
             return
         end
-
+        
         local barID, buttonID = string.match(button:getId(), "(.*)%.(.*)")
         local param = string.match(selected:getText(), "\n(.*)")
         local paramValue = paramText:getText()
         local check = param .. " " .. paramValue
+        
         if check:find("utevo res ina") then
             param = "utevo res ina"
             paramValue = paramValue:gsub("ina ", "")
         end
+        
         if paramValue:lower():find("up|down") then
             paramValue = ""
         end
+        
         if not string_empty(paramValue) then
             param = param .. ' "' .. paramValue:gsub('"', '') .. '"'
         end
+        
         ApiJson.createOrUpdateText(tonumber(barID), tonumber(buttonID), param, true)
         updateButton(button)
-
+        
         if destroy then
             ActionBarController:unloadHtml()
         end
     end
+    
     ActionBarController:findWidget("#buttonOk").onClick = function()
         okFunc(true)
     end
@@ -193,42 +240,9 @@ function assignSpell(button)
         okFunc(false)
     end
     ActionBarController:findWidget("#buttonClose").onClick = cancelFunc
-    ActionBarController:findWidget("#dev").onClick = function()
-        spellList:destroyChildren()
-        for spellName, spellData in pairs(spells) do
-            local widget = g_ui.createWidget('SpellPreview', spellList)
-            local spellId = spellData.clientId
-            local clip = Spells.getImageClip(spellId)
-            radio:addWidget(widget)
-            widget:setId(spellData.id)
-            widget:setText(spellName .. "\n" .. spellData.words)
-            widget.voc = spellData.vocations
-            widget.param = spellData.parameter
-            widget.source = defaultIconsFolder
-            widget.clip = clip
-            widget.image:setImageSource(widget.source)
-            widget.image:setImageClip(widget.clip)
-            if spellData.level then
-                widget.levelLabel:setVisible(true)
-                widget.levelLabel:setText(string.format("Level: %d", spellData.level))
-                widget.image.gray:setVisible(playerLevel < spellData.level)
-            end
-            local primaryGroup = Spells.getPrimaryGroup(spellData)
-            if primaryGroup ~= -1 then
-                local offSet = (primaryGroup == 2 and 20) or (primaryGroup == 3 and 40) or 0
-                widget.imageGroup:setImageClip(offSet .. " 0 20 20")
-                widget.imageGroup:setVisible(true)
-            end
-        end
-        local newWidgets = spellList:getChildren()
-        table.sort(newWidgets, function(a, b)
-            return a:getText() < b:getText()
-        end)
-        for i, widget in ipairs(newWidgets) do
-            spellList:moveChildToIndex(widget, i)
-        end
-    end
 end
+
+
 -- /*=============================================
 -- =            SetText html Windows             =
 -- =============================================*/
