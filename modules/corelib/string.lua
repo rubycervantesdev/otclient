@@ -63,7 +63,7 @@ function string:wrap(width)
     local wrapped = ""
     local lineWidth = 0
     for word in self:gmatch("%S+") do
-        local wordWidth = #word * 10  -- Assuming each character is 10 pixels wide
+        local wordWidth = #word * 10 -- Assuming each character is 10 pixels wide
         if lineWidth + wordWidth > width then
             wrapped = wrapped .. "\n" .. word .. " "
             lineWidth = wordWidth + 1
@@ -83,13 +83,25 @@ function string.empty(str)
 end
 
 function formatMoney(amount, separator)
-  local patternSeparator = string.format("%%1%s%%2", separator)
-  local formatted = tostring(amount)
-  while true do
-    formatted, k = string.gsub(formatted, "^(-?%d+)(%d%d%d)", patternSeparator)
-    if (k==0) then
-      break
+    local patternSeparator = string.format("%%1%s%%2", separator)
+    local formatted = tostring(amount)
+    while true do
+        formatted, k = string.gsub(formatted, "^(-?%d+)(%d%d%d)", patternSeparator)
+        if (k == 0) then
+            break
+        end
     end
-  end
-  return formatted
+    return formatted
+end
+
+function string.searchEscape(str)
+    str = string.gsub(str, "\\", "\\\\")
+    str = string.gsub(str, '"', '\\"')
+    str = string.gsub(str, "'", "\\'")
+    str = string.gsub(str, "\n", "\\n")
+    str = string.gsub(str, "\t", "\\t")
+    str = string.gsub(str, "\r", "\\r")
+    str = string.gsub(str, "%[", "\\[")
+    str = string.gsub(str, "%]", "\\]")
+    return str
 end

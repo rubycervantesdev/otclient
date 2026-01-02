@@ -1,4 +1,6 @@
 -- @docconsts @{
+GOLD_COINS = 3031
+
 FloorHigher = 0
 FloorLower = 15
 
@@ -33,6 +35,11 @@ ShieldYellowNoSharedExpBlink = 8
 ShieldBlueNoSharedExp = 9
 ShieldYellowNoSharedExp = 10
 ShieldGray = 11
+
+uint8Max = 255
+uint16Max = 65535
+uint32Max = 4294967295
+uint64Max = 18446744073709551615
 
 EmblemNone = 0
 EmblemGreen = 1
