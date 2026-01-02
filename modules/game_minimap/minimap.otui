@@ -1,223 +1,87 @@
-InvisibleMinimapButton < UIButton
-  opacity: 0
-  size: 15 15
-
-MapMiniWindow
+MiniWindow
   id: minimapWindow
-  &type: 'miniMap'
-  @onClose: modules.game_minimap.onClose()
+  !text: tr('Map View')
+  height: 150
+  width: 200
+  x: 10
+  y: 100
+  @onClose: modules.game_minimap.onMiniWindowClose()
+  &save: true
 
-  Minimap
-    id: minimap
-    anchors.fill: parent
-    margin: 15 4 4 4
+  MiniWindowContents
+    background-color: black
+    vertical-scrollbar: false
+    horizontal-scrollbar: false
+    anchors.right: parent.right
+    margin-right: 0
 
-  UIWidget
-    id: title
-    size: 58 10
-    focusable: false
-    anchors.top: parent.top
-    anchors.horizontalCenter: parent.horizontalCenter
-    margin-top: 3
-    image-source: /images/game/minimap/mapview-label
-    phantom: true
+    UIWidget
+      id: minimapBorder
+      anchors.fill: parent
+      image-source: /images/ui/1pixel_down_frame
+
+      Minimap
+        id: minimap
+        anchors.fill: parent
+        margin: 1
+        background-color: black
+        visible: true
+        vertical-scrollbar: false
+        horizontal-scrollbar: false
+
+    UIWidget
+      id: rosePanel
+      anchors.top: minimapBorder.top
+      anchors.right: minimapBorder.right
+      margin-top: 5
+      margin-right: 5
+      size: 43 43
+      phantom: true
+      opacity: 1
+      background-color: alpha
+      border-width: 0
+
+      UIWidget
+        id: ambients
+        anchors.centerIn: parent
+        size: 31 31
+        background-color: alpha
+        phantom: true
+
+        UIWidget
+          id: main
+          image-source: /images/game/minimap/timedisplay-scroll
+          anchors.left: parent.left
+          anchors.top: parent.top
+          image-clip: 100 0 24 31
+          size: 24 31
+          background-color: alpha
+          phantom: true
+
+        UIWidget
+          id: secondary
+          image-source: /images/game/minimap/timedisplay-scroll
+          anchors.left: main.right
+          anchors.top: parent.top
+          image-clip: 0 0 7 31
+          size: 7 31
+          background-color: alpha
+          phantom: true
+
+      UIWidget
+        id: rose
+        anchors.fill: parent
+        image-source: /images/game/minimap/timedisplay-glass
+        anchors.centerIn: parent
+        background-color: alpha
+        phantom: true
+
+       
+
 
   ResizeBorder
+    id: resizeBorder
     anchors.right: parent.right
+    anchors.top: parent.top
     anchors.bottom: parent.bottom
-    anchors.left: parent.left
-    height: 3
     enabled: true
-    minimum: 200
-    maximum: 200
-
-  UIWidget
-    id: centerMap
-    size: 29 32
-    anchors.right: parent.right
-    anchors.top: parent.top
-    margin-top: 23
-    margin-right: 14
-    image-source: /images/automap/timedisplay_scroll
-    image-clip: 64 0 34 34
-    @onClick: modules.game_minimap.center()
-
-  UIWidget
-    id: glass
-    size: 47 46
-    image-source: /images/game/minimap/timedisplay-glass
-    anchors.right: parent.right
-    anchors.top: parent.top
-    margin-top: 17
-    margin-right: 5
-
-  InvisibleMinimapButton
-    anchors.right: glass.right
-    anchors.verticalCenter: glass.verticalCenter
-    @onClick: modules.game_minimap.compassMove('east')
-
-  InvisibleMinimapButton
-    anchors.left: glass.left
-    anchors.verticalCenter: glass.verticalCenter
-    @onClick: modules.game_minimap.compassMove('west')
-
-  InvisibleMinimapButton
-    anchors.top: glass.top
-    anchors.horizontalCenter: glass.horizontalCenter
-    @onClick: modules.game_minimap.compassMove('north')
-
-  InvisibleMinimapButton
-    anchors.bottom: glass.bottom
-    anchors.horizontalCenter: glass.horizontalCenter
-    @onClick: modules.game_minimap.compassMove('south')
-
-  InvisibleMinimapButton
-    anchors.top: glass.top
-    anchors.left: glass.left
-    @onClick: modules.game_minimap.compassMove('northwest')
-
-  InvisibleMinimapButton
-    anchors.top: glass.top
-    anchors.right: glass.right
-    @onClick: modules.game_minimap.compassMove('northeast')
-
-  InvisibleMinimapButton
-    anchors.bottom: glass.bottom
-    anchors.left: glass.left
-    @onClick: modules.game_minimap.compassMove('southwest')
-
-  InvisibleMinimapButton
-    anchors.bottom: glass.bottom
-    anchors.right: glass.right
-    @onClick: modules.game_minimap.compassMove('southeast')
-
-  InvisibleMinimapButton
-    anchors.verticalCenter: glass.verticalCenter
-    anchors.horizontalCenter: glass.horizontalCenter
-    @onClick: modules.game_minimap.center()
-
-  Label
-    id: floorPosition
-    image-source: /images/automap/automap_indicator_maplayers
-    size: 14 67
-    image-clip: 98 0 14 67
-    anchors.left: parent.left
-    anchors.bottom: fullSize.top
-    margin-left: 10
-    margin-bottom: 5
-    visible: false
-
-    UIButton
-      anchors.top: parent.top
-      anchors.left: parent.left
-      size: 16 32
-      @onClick: modules.game_minimap.floor(true)
-
-    UIButton
-      anchors.top: prev.bottom
-      anchors.left: parent.left
-      size: 16 32
-      @onClick: modules.game_minimap.floor(false)
-
-  Button
-    id: floorUp
-    size: 20 20
-    image-source: /images/game/minimap/floor_up
-    image-clip: 0 0 20 20
-    anchors.left: parent.left
-    anchors.bottom: next.top
-    margin-left: 5
-    margin-bottom: 2
-    tooltip: Change Layer (Ctrl + Mouse Wheel or Alt+PageUp for a higher floor, Alt+PageDown for a lower floor)
-    tooltip-delayed: true
-
-    $hover !pressed:
-      image-clip: 0 0 20 20
-
-    $pressed:
-      image-clip: 0 20 20 20
-
-    @onClick: modules.game_minimap.floor(true)
-
-  Button
-    id: floorDown
-    size: 20 20
-    image-source: /images/game/minimap/floor_down
-    image-clip: 0 0 20 20
-    anchors.left: parent.left
-    anchors.bottom: parent.bottom
-    margin-left: 5
-    margin-bottom: 5
-    tooltip: Change Layer (Ctrl + Mouse Wheel or Alt+PageUp for a higher floor, Alt+PageDown for a lower floor)
-    tooltip-delayed: true
-
-    $hover !pressed:
-      image-clip: 0 0 20 20
-
-    $pressed:
-      image-clip: 0 20 20 20
-
-    @onClick: modules.game_minimap.floor(false)
-
-  Button
-    id: zoomInWidget
-    size: 20 20
-    image-source: /images/game/minimap/automap-button-zoomin-up
-    image-clip: 0 0 20 20
-    anchors.right: parent.right
-    anchors.bottom: parent.bottom
-    margin-right: 5
-    margin-bottom: 5
-    tooltip: Zoom in (Alt + End)
-    tooltip-delayed: true
-
-    $hover !pressed:
-      image-clip: 0 0 20 20
-
-    $pressed:
-      image-clip: 0 0 20 20
-      image-source: /images/game/minimap/automap-button-zoomin-down
-
-    @onClick: modules.game_minimap.zoom(true)
-
-  Button
-    id: zoomOutWidget
-    size: 20 20
-    image-source: /images/game/minimap/automap-button-zoomout-up
-    image-clip: 0 0 20 20
-    anchors.right: parent.right
-    anchors.bottom: zoomInWidget.top
-    margin-right: 5
-    margin-bottom: 2
-    tooltip: Zoom out (Alt + Home)
-    tooltip-delayed: true
-
-    $hover !pressed:
-      image-clip: 0 0 20 20
-
-    $pressed:
-      image-clip: 0 0 20 20
-      image-source: /images/game/minimap/automap-button-zoomout-down
-
-    @onClick: modules.game_minimap.zoom(false)
-
-  Button
-    id: fullSize
-    size: 20 20
-    image-source: /images/game/minimap/automap-button-cyclopediamap-up
-    image-clip: 0 0 20 20
-    anchors.left: parent.left
-    anchors.bottom: zoomOutWidget.top
-    margin-bottom: 2
-    margin-left: 5
-    tooltip: Go to Cyclopedia Map
-    tooltip-delayed: true
-    @onClick: modules.game_cyclopedia.toggle("map")
-        
-
-    $hover !pressed:
-      image-clip: 0 0 20 20
-
-    $pressed:
-      image-clip: 0 0 20 20
-      image-source: /images/game/minimap/automap-button-cyclopediamap-down
