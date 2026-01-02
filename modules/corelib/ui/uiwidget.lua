@@ -732,3 +732,11 @@ function UIWidget:__childFor(moduleName, expr, html, index)
         fnc = scan
     })
 end
+
+function UIWidget:setActionId(actionId)
+    self.actionId = actionId
+end
+
+function UIWidget:getActionId()
+    return self.actionId
+end

@@ -11,29 +11,6 @@ return {
             modules.client_topmenu.setFpsVisible(value)
         end
     },
-    noFrameCheckBox                   = {
-        value = false,
-        action = function(value, options, controller, panels, extraWidgets)
-            local fpsLabel = panels.graphicsPanel:recursiveGetChildById('fpsLabel')
-            local fpsScroll = panels.graphicsPanel:recursiveGetChildById('backgroundFrameRate')
-
-            if fpsLabel then
-                fpsLabel:setEnabled(not value)
-            end
-            if fpsScroll then
-                fpsScroll:setEnabled(not value)
-            end
-
-            if value then
-                g_app.setMaxFps(240)
-                g_app.setTargetFps(240)
-            else
-                local currentFps = modules.client_options.getOption('backgroundFrameRate') or 240
-                g_app.setMaxFps(currentFps)
-                g_app.setTargetFps(currentFps)
-            end
-        end
-    },
     showPing                          = {
         value = false,
         action = function(value, options, controller, panels, extraWidgets)
@@ -195,29 +172,16 @@ return {
     },
     openMaximized                     = false,
     backgroundFrameRate               = {
-        value = 200,
+        value = 501,
         action = function(value, options, controller, panels, extraWidgets)
-            local noFrameLimit = modules.client_options.getOption('noFrameCheckBox')
-            if noFrameLimit then
-                return
+            local text, v = value, value
+            if value <= 0 or value >= 501 then
+                text = 'max'
+                v = 0
             end
 
-            local v = value
-            if value <= 0 or value > 240 then
-                v = 240
-            end
-
-            local fpsLabel = panels.graphicsPanel:recursiveGetChildById('fpsLabel')
-            if fpsLabel then
-                if value <= 0 or value > 240 then
-                    fpsLabel:setText(tr('Frame Rate Limit: max'))
-                else
-                    fpsLabel:setText(tr('Frame Rate Limit: %d', value))
-                end
-            end
-
+            panels.graphicsPanel:recursiveGetChildById('backgroundFrameRate'):setText(tr('Game framerate limit: %s', text))
             g_app.setMaxFps(v)
-            g_app.setTargetFps(v)
         end
     },
     enableAudio                       = {
@@ -256,10 +220,6 @@ return {
         action = function(value, options, controller, panels, extraWidgets)
             panels.gameMapPanel:setDrawLights(value and options.ambientLight.value < 100)
             panels.graphicsEffectsPanel:recursiveGetChildById('ambientLight'):setEnabled(value)
-            panels.graphicsEffectsPanel:recursiveGetChildById('ambientLightLabel'):setDisabled(not
-                value)
-            panels.graphicsEffectsPanel:recursiveGetChildById('shadowFloorIntensityLabel'):setDisabled(not
-                value)
         end
     },
     limitVisibleDimension             = {
@@ -277,8 +237,8 @@ return {
     ambientLight                      = {
         value = 0,
         action = function(value, options, controller, panels, extraWidgets)
-            local ambientLightLabel = panels.graphicsEffectsPanel:recursiveGetChildById('ambientLightLabel')
-            ambientLightLabel:setText(tr('Ambient Light: %s%%', value))
+            panels.graphicsEffectsPanel:recursiveGetChildById('ambientLight'):setText(string.format(
+                'Ambient light: %s%%', value))
             panels.gameMapPanel:setMinimumAmbientLight(value / 100)
             panels.gameMapPanel:setDrawLights(options.enableLights.value)
         end
@@ -381,9 +341,8 @@ return {
     shadowFloorIntensity              = {
         value = 30,
         action = function(value, options, controller, panels, extraWidgets)
-            local shadowFloorIntensityLabel = panels.graphicsEffectsPanel:recursiveGetChildById(
-                'shadowFloorIntensityLabel')
-            shadowFloorIntensityLabel:setText(tr('Shadow Floor Intensity: %s%%', value))
+            panels.graphicsEffectsPanel:recursiveGetChildById('shadowFloorIntensity'):setText(string.format(
+                'Shadow floor Intensity: %s%%', value))
             panels.gameMapPanel:setShadowFloorIntensity(1 - (value / 100))
         end
     },
@@ -413,15 +372,13 @@ return {
 
             local fadeMode = value == 1
             panels.graphicsEffectsPanel:recursiveGetChildById('floorFading'):setEnabled(fadeMode)
-            panels.graphicsEffectsPanel:recursiveGetChildById('floorFadingLabel'):setEnabled(fadeMode)
         end
     },
     floorFading                       = {
         value = 500,
         action = function(value, options, controller, panels, extraWidgets)
-            local floorFadingLabel = panels.graphicsEffectsPanel:recursiveGetChildById(
-                'floorFadingLabel')
-            floorFadingLabel:setText(tr('Floor Fading: %s ms', value))
+            panels.graphicsEffectsPanel:recursiveGetChildById('floorFading'):setText(string.format('Floor Fading: %s ms',
+                value))
             panels.gameMapPanel:setFloorFading(tonumber(value))
         end
     },
@@ -502,14 +459,6 @@ return {
         value = false,
         action = function(value, options, controller, panels, extraWidgets)
             modules.game_interface.getLeftExtraPanel():setOn(value)
-
-            -- Update horizontal left panel width if it's active
-            if options.showHorizontalLeftPanel and options.showHorizontalLeftPanel.value then
-                addEvent(function()
-                    modules.game_interface.setLeftHorizontalWidth()
-                end)
-            end
-
             -- Update action bars when left extra panel visibility changes
             if modules.game_actionbar and modules.game_actionbar.updateVisibleWidgetsExternal then
                 addEvent(function()
@@ -521,46 +470,13 @@ return {
     showLeftPanel                     = {
         value = true,
         action = function(value, options, controller, panels, extraWidgets)
-            -- Prevent closing left panel if horizontal left panel is active
-            if not value and options.showHorizontalLeftPanel and options.showHorizontalLeftPanel.value then
-                -- Force it back to true if panels are available
-                if panels and panels.interfacePanel then
-                    local checkbox = panels.interfacePanel:recursiveGetChildById('showLeftPanel')
-                    if checkbox then
-                        checkbox:setChecked(true, true)
-                    end
-                end
-                return
-            end
-
             modules.game_interface.getLeftPanel():setOn(value)
             -- Update action bars when left panel visibility changes
             if modules.game_actionbar and modules.game_actionbar.updateVisibleWidgetsExternal then
+                addEvent(function()
+                    modules.game_actionbar.updateVisibleWidgetsExternal()
+                end)
             end
-        end
-    },
-    showHorizontalLeftPanel           = {
-        value = false,
-        action = function(value, options, controller, panels, extraWidgets)
-            -- If enabling horizontal left panel, ensure left panel is open
-            if value and options.showLeftPanel and not options.showLeftPanel.value then
-                options.showLeftPanel.value = true
-                if panels and panels.interfacePanel then
-                    local checkbox = panels.interfacePanel:recursiveGetChildById('showLeftPanel')
-                    if checkbox then
-                        checkbox:setChecked(true, true)
-                    end
-                end
-                modules.game_interface.getLeftPanel():setOn(true)
-            end
-
-            modules.game_interface.showLeftHorizontalPanel(value)
-        end
-    },
-    showHorizontalRightPanel          = {
-        value = false,
-        action = function(value, options, controller, panels, extraWidgets)
-            modules.game_interface.showRightHorizontalPanel(value)
         end
     },
     showRightExtraPanel               = {
@@ -592,17 +508,17 @@ return {
     setEffectAlphaScroll              = {
         value = 100,
         action = function(value, options, controller, panels, extraWidgets)
-            local effectAlphaScrollLabel = panels.graphicsEffectsPanel:recursiveGetChildById('effectAlphaScrollLabel')
             g_client.setEffectAlpha(value / 100)
-            effectAlphaScrollLabel:setText(tr('Effect Opacity: %s%%', value))
+            panels.graphicsEffectsPanel:recursiveGetChildById('setEffectAlphaScroll'):setText(tr('Opacity Effect: %s%%',
+                value))
         end
     },
     setMissileAlphaScroll             = {
         value = 100,
         action = function(value, options, controller, panels, extraWidgets)
-            local missileAlphaScrollLabel = panels.graphicsEffectsPanel:recursiveGetChildById('missileAlphaScrollLabel')
             g_client.setMissileAlpha(value / 100)
-            missileAlphaScrollLabel:setText(tr('Missile Opacity: %s%%', value))
+            panels.graphicsEffectsPanel:recursiveGetChildById('setMissileAlphaScroll'):setText(tr(
+                'Opacity Missile: %s%%', value))
         end
     },
     distFromCenScrollbar              = {
@@ -842,6 +758,9 @@ return {
         action = function(value)
             modules.game_actionbar.updateVisibleOptions('hotkey', value)
         end,
+    },
+    stowContainer                     = {
+        value = true,
     },
     actionBarBottomLocked             = false,
     actionBarLeftLocked               = false,
