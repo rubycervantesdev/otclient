@@ -11,6 +11,29 @@ return {
             modules.client_topmenu.setFpsVisible(value)
         end
     },
+    noFrameCheckBox                   = {
+        value = false,
+        action = function(value, options, controller, panels, extraWidgets)
+            local fpsLabel = panels.graphicsPanel:recursiveGetChildById('fpsLabel')
+            local fpsScroll = panels.graphicsPanel:recursiveGetChildById('backgroundFrameRate')
+
+            if fpsLabel then
+                fpsLabel:setEnabled(not value)
+            end
+            if fpsScroll then
+                fpsScroll:setEnabled(not value)
+            end
+
+            if value then
+                g_app.setMaxFps(240)
+                g_app.setTargetFps(240)
+            else
+                local currentFps = modules.client_options.getOption('backgroundFrameRate') or 240
+                g_app.setMaxFps(currentFps)
+                g_app.setTargetFps(currentFps)
+            end
+        end
+    },
     showPing                          = {
         value = false,
         action = function(value, options, controller, panels, extraWidgets)
@@ -36,19 +59,19 @@ return {
             else
                 mouseControlMode = 0 -- Regular Controls
             end
-            
+
             -- Update the value in options table first
             options.mouseControlMode.value = mouseControlMode
-            
+
             -- Then update settings
             g_settings.set('mouseControlMode', mouseControlMode)
-            
+
             -- Update loot control visibility (only visible for Classic Controls)
             local lootControlModeCombobox = panels.generalPanel:recursiveGetChildById('lootControlMode')
             if lootControlModeCombobox then
                 lootControlModeCombobox:setVisible(mouseControlMode == 1)
             end
-            
+
             -- Update the combobox UI
             local mouseControlModeCombobox = panels.generalPanel:recursiveGetChildById('mouseControlMode')
             if mouseControlModeCombobox then
@@ -69,19 +92,19 @@ return {
             else
                 mouseControlMode = 0 -- Regular Controls
             end
-            
+
             -- Update the value in options table first
             options.mouseControlMode.value = mouseControlMode
-            
+
             -- Then update settings
             g_settings.set('mouseControlMode', mouseControlMode)
-            
+
             -- Update loot control visibility (only visible for Classic Controls)
             local lootControlModeCombobox = panels.generalPanel:recursiveGetChildById('lootControlMode')
             if lootControlModeCombobox then
                 lootControlModeCombobox:setVisible(mouseControlMode == 1)
             end
-            
+
             -- Update the combobox UI
             local mouseControlModeCombobox = panels.generalPanel:recursiveGetChildById('mouseControlMode')
             if mouseControlModeCombobox then
@@ -110,7 +133,7 @@ return {
                 g_settings.set('classicControl', false)
                 g_settings.set('smartLeftClick', true)
             end
-            
+
             -- Schedule UI updates to ensure they happen after value updates
             scheduleEvent(function()
                 -- Update the mouseControlMode combobox
@@ -124,7 +147,7 @@ return {
                         end
                     end
                 end
-                
+
                 -- Update loot control mode visibility (only visible for Classic Controls)
                 local lootControlModeCombobox = panels.generalPanel:recursiveGetChildById('lootControlMode')
                 if lootControlModeCombobox then
@@ -172,16 +195,29 @@ return {
     },
     openMaximized                     = false,
     backgroundFrameRate               = {
-        value = 501,
+        value = 200,
         action = function(value, options, controller, panels, extraWidgets)
-            local text, v = value, value
-            if value <= 0 or value >= 501 then
-                text = 'max'
-                v = 0
+            local noFrameLimit = modules.client_options.getOption('noFrameCheckBox')
+            if noFrameLimit then
+                return
             end
 
-            panels.graphicsPanel:recursiveGetChildById('backgroundFrameRate'):setText(tr('Game framerate limit: %s', text))
+            local v = value
+            if value <= 0 or value > 240 then
+                v = 240
+            end
+
+            local fpsLabel = panels.graphicsPanel:recursiveGetChildById('fpsLabel')
+            if fpsLabel then
+                if value <= 0 or value > 240 then
+                    fpsLabel:setText(tr('Frame Rate Limit: max'))
+                else
+                    fpsLabel:setText(tr('Frame Rate Limit: %d', value))
+                end
+            end
+
             g_app.setMaxFps(v)
+            g_app.setTargetFps(v)
         end
     },
     enableAudio                       = {
@@ -220,6 +256,10 @@ return {
         action = function(value, options, controller, panels, extraWidgets)
             panels.gameMapPanel:setDrawLights(value and options.ambientLight.value < 100)
             panels.graphicsEffectsPanel:recursiveGetChildById('ambientLight'):setEnabled(value)
+            panels.graphicsEffectsPanel:recursiveGetChildById('ambientLightLabel'):setDisabled(not
+                value)
+            panels.graphicsEffectsPanel:recursiveGetChildById('shadowFloorIntensityLabel'):setDisabled(not
+                value)
         end
     },
     limitVisibleDimension             = {
@@ -237,8 +277,8 @@ return {
     ambientLight                      = {
         value = 0,
         action = function(value, options, controller, panels, extraWidgets)
-            panels.graphicsEffectsPanel:recursiveGetChildById('ambientLight'):setText(string.format(
-                'Ambient light: %s%%', value))
+            local ambientLightLabel = panels.graphicsEffectsPanel:recursiveGetChildById('ambientLightLabel')
+            ambientLightLabel:setText(tr('Ambient Light: %s%%', value))
             panels.gameMapPanel:setMinimumAmbientLight(value / 100)
             panels.gameMapPanel:setDrawLights(options.enableLights.value)
         end
@@ -328,7 +368,7 @@ return {
             panels.gameMapPanel:setDrawHighlightTarget(value)
         end
     },
-    showDragIcon        = {
+    showDragIcon                      = {
         value = true,
     },
     antialiasingMode                  = {
@@ -341,8 +381,9 @@ return {
     shadowFloorIntensity              = {
         value = 30,
         action = function(value, options, controller, panels, extraWidgets)
-            panels.graphicsEffectsPanel:recursiveGetChildById('shadowFloorIntensity'):setText(string.format(
-                'Shadow floor Intensity: %s%%', value))
+            local shadowFloorIntensityLabel = panels.graphicsEffectsPanel:recursiveGetChildById(
+                'shadowFloorIntensityLabel')
+            shadowFloorIntensityLabel:setText(tr('Shadow Floor Intensity: %s%%', value))
             panels.gameMapPanel:setShadowFloorIntensity(1 - (value / 100))
         end
     },
@@ -372,13 +413,15 @@ return {
 
             local fadeMode = value == 1
             panels.graphicsEffectsPanel:recursiveGetChildById('floorFading'):setEnabled(fadeMode)
+            panels.graphicsEffectsPanel:recursiveGetChildById('floorFadingLabel'):setEnabled(fadeMode)
         end
     },
     floorFading                       = {
         value = 500,
         action = function(value, options, controller, panels, extraWidgets)
-            panels.graphicsEffectsPanel:recursiveGetChildById('floorFading'):setText(string.format('Floor Fading: %s ms',
-                value))
+            local floorFadingLabel = panels.graphicsEffectsPanel:recursiveGetChildById(
+                'floorFadingLabel')
+            floorFadingLabel:setText(tr('Floor Fading: %s ms', value))
             panels.gameMapPanel:setFloorFading(tonumber(value))
         end
     },
@@ -508,17 +551,17 @@ return {
     setEffectAlphaScroll              = {
         value = 100,
         action = function(value, options, controller, panels, extraWidgets)
+            local effectAlphaScrollLabel = panels.graphicsEffectsPanel:recursiveGetChildById('effectAlphaScrollLabel')
             g_client.setEffectAlpha(value / 100)
-            panels.graphicsEffectsPanel:recursiveGetChildById('setEffectAlphaScroll'):setText(tr('Opacity Effect: %s%%',
-                value))
+            effectAlphaScrollLabel:setText(tr('Effect Opacity: %s%%', value))
         end
     },
     setMissileAlphaScroll             = {
         value = 100,
         action = function(value, options, controller, panels, extraWidgets)
+            local missileAlphaScrollLabel = panels.graphicsEffectsPanel:recursiveGetChildById('missileAlphaScrollLabel')
             g_client.setMissileAlpha(value / 100)
-            panels.graphicsEffectsPanel:recursiveGetChildById('setMissileAlphaScroll'):setText(tr(
-                'Opacity Missile: %s%%', value))
+            missileAlphaScrollLabel:setText(tr('Missile Opacity: %s%%', value))
         end
     },
     distFromCenScrollbar              = {
@@ -614,61 +657,61 @@ return {
             listKeybindsComboBox(value)
         end
     },
-    graphicalCooldown = {
+    graphicalCooldown                 = {
         value = true,
         action = function(value)
             modules.game_actionbar.toggleCooldownOption()
         end,
     },
-    cooldownSecond = {
+    cooldownSecond                    = {
         value = true,
         action = function(value)
             modules.game_actionbar.toggleCooldownOption()
         end,
     },
-    actionBarShowBottom1 = {
+    actionBarShowBottom1              = {
         value = true,
         action = function(value)
             local allBox = modules.client_options.getOption("allActionBar13") or false
             modules.game_actionbar.configureActionBar('actionBarShowBottom1', allBox and value)
         end,
     },
-    actionBarShowBottom2 = {
+    actionBarShowBottom2              = {
         value = false,
         action = function(value)
             local allBox = modules.client_options.getOption("allActionBar13") or false
             modules.game_actionbar.configureActionBar('actionBarShowBottom2', allBox and value)
         end,
     },
-    actionBarShowBottom3 = {
+    actionBarShowBottom3              = {
         value = false,
         action = function(value)
             local allBox = modules.client_options.getOption("allActionBar13") or false
             modules.game_actionbar.configureActionBar('actionBarShowBottom3', allBox and value)
         end,
     },
-    actionBarShowLeft1 = {
+    actionBarShowLeft1                = {
         value = false,
         action = function(value)
             local allBox = modules.client_options.getOption("allActionBar46") or false
             modules.game_actionbar.configureActionBar('actionBarShowLeft1', allBox and value)
         end,
     },
-    actionBarShowLeft2 = {
+    actionBarShowLeft2                = {
         value = false,
         action = function(value)
             local allBox = modules.client_options.getOption("allActionBar46") or false
             modules.game_actionbar.configureActionBar('actionBarShowLeft2', allBox and value)
         end,
     },
-    actionBarShowLeft3 = {
+    actionBarShowLeft3                = {
         value = false,
         action = function(value)
             local allBox = modules.client_options.getOption("allActionBar46") or false
             modules.game_actionbar.configureActionBar('actionBarShowLeft3', allBox and value)
         end,
     },
-    actionBarShowRight1 = {
+    actionBarShowRight1               = {
         value = false,
         action = function(value)
             local allBox = modules.client_options.getOption("allActionBar79") or false
@@ -676,54 +719,24 @@ return {
             return true
         end,
     },
-    actionBarShowRight2 = {
+    actionBarShowRight2               = {
         value = false,
         action = function(value)
             local allBox = modules.client_options.getOption("allActionBar79") or false
             modules.game_actionbar.configureActionBar('actionBarShowRight2', allBox and value)
         end,
     },
-    actionBarShowRight3 = {
+    actionBarShowRight3               = {
         value = false,
         action = function(value)
             local allBox = modules.client_options.getOption("allActionBar79") or false
             modules.game_actionbar.configureActionBar('actionBarShowRight3', allBox and value)
         end,
     },
-    allActionBar46 = {
+    allActionBar46                    = {
         value = false,
         action = function(value)
-            local huds = {"actionBarShowLeft1", "actionBarShowLeft2", "actionBarShowLeft3"}
-            for _, actionBar in pairs(huds) do
-                local hud =  panels.actionbars:recursiveGetChildById(actionBar)
-                if value then
-                    hud:enable()
-                else
-                    hud:disable()
-                end
-                modules.game_actionbar.configureActionBar(actionBar, (value and hud:isChecked()))
-            end
-        end,
-    },
-    allActionBar13 = {
-        value = true,
-        action = function(value)
-            local huds = {"actionBarShowBottom1", "actionBarShowBottom2", "actionBarShowBottom3"}
-            for _, actionBar in pairs(huds) do
-                local hud =  panels.actionbars:recursiveGetChildById(actionBar)
-                if value then
-                    hud:enable()
-                else
-                    hud:disable()
-                end
-                modules.game_actionbar.configureActionBar(actionBar, (value and hud:isChecked()))
-            end
-        end,
-    },
-    allActionBar79 = {
-        value = false,
-        action = function(value)
-            local huds = {"actionBarShowRight1", "actionBarShowRight2", "actionBarShowRight3"}
+            local huds = { "actionBarShowLeft1", "actionBarShowLeft2", "actionBarShowLeft3" }
             for _, actionBar in pairs(huds) do
                 local hud = panels.actionbars:recursiveGetChildById(actionBar)
                 if value then
@@ -735,31 +748,61 @@ return {
             end
         end,
     },
-    actionTooltip = {
+    allActionBar13                    = {
+        value = true,
+        action = function(value)
+            local huds = { "actionBarShowBottom1", "actionBarShowBottom2", "actionBarShowBottom3" }
+            for _, actionBar in pairs(huds) do
+                local hud = panels.actionbars:recursiveGetChildById(actionBar)
+                if value then
+                    hud:enable()
+                else
+                    hud:disable()
+                end
+                modules.game_actionbar.configureActionBar(actionBar, (value and hud:isChecked()))
+            end
+        end,
+    },
+    allActionBar79                    = {
+        value = false,
+        action = function(value)
+            local huds = { "actionBarShowRight1", "actionBarShowRight2", "actionBarShowRight3" }
+            for _, actionBar in pairs(huds) do
+                local hud = panels.actionbars:recursiveGetChildById(actionBar)
+                if value then
+                    hud:enable()
+                else
+                    hud:disable()
+                end
+                modules.game_actionbar.configureActionBar(actionBar, (value and hud:isChecked()))
+            end
+        end,
+    },
+    actionTooltip                     = {
         value = true,
         action = function(value)
             modules.game_actionbar.updateVisibleOptions('tooltip', value)
         end,
     },
-    showSpellParameters = {
+    showSpellParameters               = {
         value = true,
         action = function(value)
             modules.game_actionbar.updateVisibleOptions('parameter', value)
         end,
     },
-    showHKObjectsBars = {
+    showHKObjectsBars                 = {
         value = true,
         action = function(value)
             modules.game_actionbar.updateVisibleOptions('amount', value)
         end,
     },
-    showAssignedHKButton = {
+    showAssignedHKButton              = {
         value = true,
         action = function(value)
             modules.game_actionbar.updateVisibleOptions('hotkey', value)
         end,
     },
-    actionBarBottomLocked = false,
-    actionBarLeftLocked = false,
-    actionBarRightLocked = false    
+    actionBarBottomLocked             = false,
+    actionBarLeftLocked               = false,
+    actionBarRightLocked              = false
 }
