@@ -23,6 +23,7 @@
 #pragma once
 
 #include "staticdata.h"
+#include "game.h"
 
  // outfit
 int push_luavalue(const Outfit& outfit);
