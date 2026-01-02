@@ -303,6 +303,7 @@ local WEAPON_WANDROD = 7
 local WEAPON_THROW = 8
 
 MarketCategory = {
+<<<<<<< HEAD
   WeaponsAll = 32,
   Axes = 17,
   Clubs = 18,
@@ -310,10 +311,19 @@ MarketCategory = {
   Swords = 20,
   WandsRods = 21,
   FistWeapons = 27,
+=======
+	WeaponsAll = 32,
+	Axes = 17,
+	Clubs = 18,
+	DistanceWeapons = 19,
+	Swords = 20,
+	WandsRods = 21,
+	FistWeapons = 27,
+>>>>>>> pr-8
 }
 
 UnknownCategories = {
-	[WEAPON_AXE] 	  = MarketCategory.Axes,
+	[WEAPON_AXE]      = MarketCategory.Axes,
 	[WEAPON_BOW]      = MarketCategory.DistanceWeapons,
 	[WEAPON_CLUB]     = MarketCategory.Clubs,
 	[WEAPON_FIST]     = MarketCategory.FistWeapons,

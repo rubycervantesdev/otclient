@@ -170,4 +170,8 @@ function wrapTextByWords(str, n)
     end
   end
   return table.concat(result, "\n")
+<<<<<<< HEAD
 end
+=======
+end
+>>>>>>> pr-8

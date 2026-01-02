@@ -1771,7 +1771,7 @@ void ProtocolGame::parseCyclopediaItemDetail(const InputMessagePtr& msg)
     uint32_t playerId = msg->getU32();  // creature ID (version 13.00)
     msg->getU8();                       // 0x01
 
-	const std::string& itemName = msg->getString(); // item name
+    const std::string& itemName = msg->getString(); // item name
     const auto& item = getItem(msg);
 
     msg->getU8(); // 0x00

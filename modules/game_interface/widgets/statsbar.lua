@@ -245,17 +245,17 @@ function StatsBar.reloadCurrentStatsBarQuickInfo()
 
     local manashield = 0
     local maxManaShield = 0
-    
+
     if player.getManaShield then
         manashield = player:getManaShield()
     end
-    
+
     if not bar.mana.defaultHeight then
         bar.mana.defaultHeight = bar.mana:getHeight()
     end
 
     bar.mana:setValue(mana, maxMana)
-    
+
     if player.getMaxManaShield then
         maxManaShield = player:getMaxManaShield()
     end
@@ -772,6 +772,7 @@ function StatsBar.switchCurrentLayout()
     end
 
     StatsBar.onUpdateProficiencyData(lastProficiencyCache.itemCache, lastProficiencyCache.hasUnnusedPerk,
+<<<<<<< HEAD
     lastProficiencyCache.thingType)
 end
 
@@ -798,6 +799,34 @@ function onUpdateProficiencyWidget(hidePercentBar)
       proficiencyButton:setMarginRight(3)
     end
   end
+=======
+        lastProficiencyCache.thingType)
+end
+
+function onUpdateProficiencyWidget(hidePercentBar)
+    if not statsBar then return end
+
+    local statsPanel = statsBar:recursiveGetChildById('stats')
+    local proficiencyPanel = statsBar:recursiveGetChildById('proficiencyPanel')
+    local proficiencyButton = statsBar:recursiveGetChildById('proficiencyButton')
+
+    if not proficiencyPanel or not proficiencyButton then
+        return
+    end
+
+    if currentStats.dimension == 'parallel' or currentStats.dimension == "default" then
+        if hidePercentBar then
+            statsPanel:setMarginRight(45)
+            proficiencyPanel:setSize(tosize("0 13"))
+            proficiencyButton:setMarginRight(-4)
+        else
+            statsPanel:setMarginRight(-14)
+            proficiencyPanel:setSize(tosize("103 13"))
+            proficiencyPanel:setMarginRight(8)
+            proficiencyButton:setMarginRight(3)
+        end
+    end
+>>>>>>> pr-8
 end
 
 function StatsBar.onUpdateProficiencyData(itemCache, hasUnnusedPerk, thingType)
@@ -811,8 +840,8 @@ function StatsBar.onUpdateProficiencyData(itemCache, hasUnnusedPerk, thingType)
 
     -- Check if module is properly loaded and initialized
     if not modules.game_proficiency or
-       not modules.game_proficiency.ProficiencyData or
-       type(modules.game_proficiency.ProficiencyData) ~= 'table' then
+        not modules.game_proficiency.ProficiencyData or
+        type(modules.game_proficiency.ProficiencyData) ~= 'table' then
         -- Module not loaded or not properly initialized - hide all proficiency UI elements
         if highlightButton then highlightButton:setVisible(false) end
         if percentBar then percentBar:setVisible(false) end
@@ -820,16 +849,16 @@ function StatsBar.onUpdateProficiencyData(itemCache, hasUnnusedPerk, thingType)
         if proficiencyIcon then proficiencyIcon:setVisible(false) end
         return
     end
-    
+
     local proficiencyId = thingType:getProficiencyId()
     if not proficiencyId or proficiencyId == 0 then return end
-    
+
     local perkCount = modules.game_proficiency.ProficiencyData:getPerkLaneCount(proficiencyId) or 0
     if perkCount == 0 then return end
-    
+
     local item = Item.create(thingType:getId())
     if not item then return end
-    
+
     local maxAvailableLevel = perkCount + 2
     local weaponLevel = modules.game_proficiency.ProficiencyData:getCurrentLevelByExp(item, itemCache.exp or 0, true)
     local nextLevel = math.min(maxAvailableLevel, weaponLevel + 1)
@@ -838,7 +867,8 @@ function StatsBar.onUpdateProficiencyData(itemCache, hasUnnusedPerk, thingType)
 
     if percentBar then
         percentBar:setPercent(percent)
-        percentBar:setTooltip(string.format("Proficiency Progress: %s / %s", comma_value(itemCache.exp or 0), comma_value(maxLevelExperience)))
+        percentBar:setTooltip(string.format("Proficiency Progress: %s / %s", comma_value(itemCache.exp or 0),
+            comma_value(maxLevelExperience)))
     end
 
     if percentLabel then

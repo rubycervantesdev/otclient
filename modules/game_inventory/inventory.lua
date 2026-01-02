@@ -572,9 +572,18 @@ function onBlessingsChange(blessings, blessVisualState)
 end
 
 function onLeftSlotChange(itemId)
+<<<<<<< HEAD
   if not g_game.isOnline() then
     return
   end
 
   modules.game_interface.StatsBar.onUpdateProficiencyWidget(itemId == 0)
 end
+=======
+    if not g_game.isOnline() then
+        return
+    end
+
+    modules.game_interface.StatsBar.onUpdateProficiencyWidget(itemId == 0)
+end
+>>>>>>> pr-8
