@@ -33,7 +33,7 @@ struct WeaponProficiencyPerk
     uint8_t perk;
 };
 
- //@bindsingleton g_game
+//@bindsingleton g_game
 class Game
 {
 public:
@@ -114,7 +114,7 @@ protected:
                                 const std::vector<std::tuple<uint16_t, std::string>>& shaderList);
 
     // npc trade
-    static void processOpenNpcTrade(const std::vector<std::tuple<ItemPtr, std::string, uint32_t, uint32_t, uint32_t>>& items);
+    static void processOpenNpcTrade(const std::vector<std::tuple<ItemPtr, std::string, uint32_t, uint32_t, uint32_t>>& items, uint16_t currency, std::string currencyName);
     static void processPlayerGoods(uint64_t money, const std::vector<std::tuple<ItemPtr, uint16_t>>& goods);
     static void processCloseNpcTrade();
 
@@ -314,7 +314,7 @@ public:
     void sendRequestStoreHome();
     void sendRequestStorePremiumBoost();
     void sendRequestUsefulThings(const uint8_t serviceType);
-    
+
     // wheel of destiny related
     void sendOpenDestinyWheel(uint32_t playerId);
     void sendApplyWheelPoints(const std::vector<uint16_t>& pointsInvested, uint32_t greenGemId, uint32_t redGemId, uint32_t blueGemId, uint32_t purpleGemId);

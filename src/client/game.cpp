@@ -440,9 +440,9 @@ void Game::processOpenOutfitWindow(const Outfit& currentOutfit, const std::vecto
     g_lua.callGlobalField("g_game", "onOpenOutfitWindow", virtualOutfitCreature, outfitList, virtualMountCreature, mountList, familiarList, wingsList, aurasList, effectList, shaderList);
 }
 
-void Game::processOpenNpcTrade(const std::vector<std::tuple<ItemPtr, std::string, uint32_t, uint32_t, uint32_t>>& items)
+void Game::processOpenNpcTrade(const std::vector<std::tuple<ItemPtr, std::string, uint32_t, uint32_t, uint32_t>>& items, uint16_t currency, std::string currencyName)
 {
-    g_lua.callGlobalField("g_game", "onOpenNpcTrade", items);
+    g_lua.callGlobalField("g_game", "onOpenNpcTrade", items, currency, currencyName);
 }
 
 void Game::processPlayerGoods(const uint64_t money, const std::vector<std::tuple<ItemPtr, uint16_t>>& goods)
@@ -1803,7 +1803,7 @@ Otc::OperatingSystem_t Game::getOs()
 
 void Game::leaveMarket()
 {
-	if (!canPerformGameAction())
+    if (!canPerformGameAction())
         return;
     m_protocolGame->sendMarketLeave();
 
@@ -1812,9 +1812,9 @@ void Game::leaveMarket()
 
 void Game::browseMarket(const uint8_t browseId, const uint16_t browseType, const uint8_t tier)
 {
-  if (!canPerformGameAction()) {
+    if (!canPerformGameAction()) {
         return;
-   }
+    }
     m_protocolGame->sendMarketBrowse(browseId, browseType, tier);
 }
 
@@ -2129,14 +2129,14 @@ void Game::processOpenExaltationForge(const ForgeOpenData& data)
     g_lua.callGlobalField("g_game", "onOpenExaltationForge", data);
 }
 
-void Game::sendForgeAction(Otc::ForgeActions_t forgeAction, bool convergence, uint16_t itemid1, uint8_t tier, uint16_t itemid2, bool usedCore, bool reduceTierLoss) 
+void Game::sendForgeAction(Otc::ForgeActions_t forgeAction, bool convergence, uint16_t itemid1, uint8_t tier, uint16_t itemid2, bool usedCore, bool reduceTierLoss)
 {
     m_protocolGame->sendForgeAction(forgeAction, convergence, itemid1, tier, itemid2, usedCore, reduceTierLoss);
 }
 
-void Game::onForgeResult(const ForgeResult& data) 
+void Game::onForgeResult(const ForgeResult& data)
 {
-	g_lua.callGlobalField("g_game", "onResultExaltationForge", data);
+    g_lua.callGlobalField("g_game", "onResultExaltationForge", data);
 }
 
 void Game::parseItemClasses(const ForgeData& data)
@@ -2144,17 +2144,17 @@ void Game::parseItemClasses(const ForgeData& data)
     g_lua.callGlobalField("g_game", "onItemClasses", data);
 }
 
-void Game::sendForgeHistory(uint32_t pageId) 
+void Game::sendForgeHistory(uint32_t pageId)
 {
     m_protocolGame->sendForgeHistory(pageId);
 }
 
 void Game::onForgeHistory(uint32_t currentPage, uint32_t lastPage, const std::vector<ForgeHistory>& data)
 {
-	g_lua.callGlobalField("g_game", "onForgeHistory", currentPage, lastPage, data);
+    g_lua.callGlobalField("g_game", "onForgeHistory", currentPage, lastPage, data);
 }
 
-void Game::sendResourceBalance() 
+void Game::sendResourceBalance()
 {
     m_protocolGame->sendResourceBalance();
 }
