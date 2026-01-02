@@ -36,19 +36,19 @@ return {
             else
                 mouseControlMode = 0 -- Regular Controls
             end
-            
+
             -- Update the value in options table first
             options.mouseControlMode.value = mouseControlMode
-            
+
             -- Then update settings
             g_settings.set('mouseControlMode', mouseControlMode)
-            
+
             -- Update loot control visibility (only visible for Classic Controls)
             local lootControlModeCombobox = panels.generalPanel:recursiveGetChildById('lootControlMode')
             if lootControlModeCombobox then
                 lootControlModeCombobox:setVisible(mouseControlMode == 1)
             end
-            
+
             -- Update the combobox UI
             local mouseControlModeCombobox = panels.generalPanel:recursiveGetChildById('mouseControlMode')
             if mouseControlModeCombobox then
@@ -69,19 +69,19 @@ return {
             else
                 mouseControlMode = 0 -- Regular Controls
             end
-            
+
             -- Update the value in options table first
             options.mouseControlMode.value = mouseControlMode
-            
+
             -- Then update settings
             g_settings.set('mouseControlMode', mouseControlMode)
-            
+
             -- Update loot control visibility (only visible for Classic Controls)
             local lootControlModeCombobox = panels.generalPanel:recursiveGetChildById('lootControlMode')
             if lootControlModeCombobox then
                 lootControlModeCombobox:setVisible(mouseControlMode == 1)
             end
-            
+
             -- Update the combobox UI
             local mouseControlModeCombobox = panels.generalPanel:recursiveGetChildById('mouseControlMode')
             if mouseControlModeCombobox then
@@ -110,7 +110,7 @@ return {
                 g_settings.set('classicControl', false)
                 g_settings.set('smartLeftClick', true)
             end
-            
+
             -- Schedule UI updates to ensure they happen after value updates
             scheduleEvent(function()
                 -- Update the mouseControlMode combobox
@@ -124,7 +124,7 @@ return {
                         end
                     end
                 end
-                
+
                 -- Update loot control mode visibility (only visible for Classic Controls)
                 local lootControlModeCombobox = panels.generalPanel:recursiveGetChildById('lootControlMode')
                 if lootControlModeCombobox then
@@ -328,7 +328,7 @@ return {
             panels.gameMapPanel:setDrawHighlightTarget(value)
         end
     },
-    showDragIcon        = {
+    showDragIcon                      = {
         value = true,
     },
     antialiasingMode                  = {
@@ -459,6 +459,14 @@ return {
         value = false,
         action = function(value, options, controller, panels, extraWidgets)
             modules.game_interface.getLeftExtraPanel():setOn(value)
+
+            -- Update horizontal left panel width if it's active
+            if options.showHorizontalLeftPanel and options.showHorizontalLeftPanel.value then
+                addEvent(function()
+                    modules.game_interface.setLeftHorizontalWidth()
+                end)
+            end
+
             -- Update action bars when left extra panel visibility changes
             if modules.game_actionbar and modules.game_actionbar.updateVisibleWidgetsExternal then
                 addEvent(function()
@@ -470,13 +478,46 @@ return {
     showLeftPanel                     = {
         value = true,
         action = function(value, options, controller, panels, extraWidgets)
+            -- Prevent closing left panel if horizontal left panel is active
+            if not value and options.showHorizontalLeftPanel and options.showHorizontalLeftPanel.value then
+                -- Force it back to true if panels are available
+                if panels and panels.interfacePanel then
+                    local checkbox = panels.interfacePanel:recursiveGetChildById('showLeftPanel')
+                    if checkbox then
+                        checkbox:setChecked(true, true)
+                    end
+                end
+                return
+            end
+
             modules.game_interface.getLeftPanel():setOn(value)
             -- Update action bars when left panel visibility changes
             if modules.game_actionbar and modules.game_actionbar.updateVisibleWidgetsExternal then
-                addEvent(function()
-                    modules.game_actionbar.updateVisibleWidgetsExternal()
-                end)
             end
+        end
+    },
+    showHorizontalLeftPanel           = {
+        value = false,
+        action = function(value, options, controller, panels, extraWidgets)
+            -- If enabling horizontal left panel, ensure left panel is open
+            if value and options.showLeftPanel and not options.showLeftPanel.value then
+                options.showLeftPanel.value = true
+                if panels and panels.interfacePanel then
+                    local checkbox = panels.interfacePanel:recursiveGetChildById('showLeftPanel')
+                    if checkbox then
+                        checkbox:setChecked(true, true)
+                    end
+                end
+                modules.game_interface.getLeftPanel():setOn(true)
+            end
+
+            modules.game_interface.showLeftHorizontalPanel(value)
+        end
+    },
+    showHorizontalRightPanel          = {
+        value = false,
+        action = function(value, options, controller, panels, extraWidgets)
+            modules.game_interface.showRightHorizontalPanel(value)
         end
     },
     showRightExtraPanel               = {
@@ -614,61 +655,61 @@ return {
             listKeybindsComboBox(value)
         end
     },
-    graphicalCooldown = {
+    graphicalCooldown                 = {
         value = true,
         action = function(value)
             modules.game_actionbar.toggleCooldownOption()
         end,
     },
-    cooldownSecond = {
+    cooldownSecond                    = {
         value = true,
         action = function(value)
             modules.game_actionbar.toggleCooldownOption()
         end,
     },
-    actionBarShowBottom1 = {
+    actionBarShowBottom1              = {
         value = true,
         action = function(value)
             local allBox = modules.client_options.getOption("allActionBar13") or false
             modules.game_actionbar.configureActionBar('actionBarShowBottom1', allBox and value)
         end,
     },
-    actionBarShowBottom2 = {
+    actionBarShowBottom2              = {
         value = false,
         action = function(value)
             local allBox = modules.client_options.getOption("allActionBar13") or false
             modules.game_actionbar.configureActionBar('actionBarShowBottom2', allBox and value)
         end,
     },
-    actionBarShowBottom3 = {
+    actionBarShowBottom3              = {
         value = false,
         action = function(value)
             local allBox = modules.client_options.getOption("allActionBar13") or false
             modules.game_actionbar.configureActionBar('actionBarShowBottom3', allBox and value)
         end,
     },
-    actionBarShowLeft1 = {
+    actionBarShowLeft1                = {
         value = false,
         action = function(value)
             local allBox = modules.client_options.getOption("allActionBar46") or false
             modules.game_actionbar.configureActionBar('actionBarShowLeft1', allBox and value)
         end,
     },
-    actionBarShowLeft2 = {
+    actionBarShowLeft2                = {
         value = false,
         action = function(value)
             local allBox = modules.client_options.getOption("allActionBar46") or false
             modules.game_actionbar.configureActionBar('actionBarShowLeft2', allBox and value)
         end,
     },
-    actionBarShowLeft3 = {
+    actionBarShowLeft3                = {
         value = false,
         action = function(value)
             local allBox = modules.client_options.getOption("allActionBar46") or false
             modules.game_actionbar.configureActionBar('actionBarShowLeft3', allBox and value)
         end,
     },
-    actionBarShowRight1 = {
+    actionBarShowRight1               = {
         value = false,
         action = function(value)
             local allBox = modules.client_options.getOption("allActionBar79") or false
@@ -676,54 +717,24 @@ return {
             return true
         end,
     },
-    actionBarShowRight2 = {
+    actionBarShowRight2               = {
         value = false,
         action = function(value)
             local allBox = modules.client_options.getOption("allActionBar79") or false
             modules.game_actionbar.configureActionBar('actionBarShowRight2', allBox and value)
         end,
     },
-    actionBarShowRight3 = {
+    actionBarShowRight3               = {
         value = false,
         action = function(value)
             local allBox = modules.client_options.getOption("allActionBar79") or false
             modules.game_actionbar.configureActionBar('actionBarShowRight3', allBox and value)
         end,
     },
-    allActionBar46 = {
+    allActionBar46                    = {
         value = false,
         action = function(value)
-            local huds = {"actionBarShowLeft1", "actionBarShowLeft2", "actionBarShowLeft3"}
-            for _, actionBar in pairs(huds) do
-                local hud =  panels.actionbars:recursiveGetChildById(actionBar)
-                if value then
-                    hud:enable()
-                else
-                    hud:disable()
-                end
-                modules.game_actionbar.configureActionBar(actionBar, (value and hud:isChecked()))
-            end
-        end,
-    },
-    allActionBar13 = {
-        value = true,
-        action = function(value)
-            local huds = {"actionBarShowBottom1", "actionBarShowBottom2", "actionBarShowBottom3"}
-            for _, actionBar in pairs(huds) do
-                local hud =  panels.actionbars:recursiveGetChildById(actionBar)
-                if value then
-                    hud:enable()
-                else
-                    hud:disable()
-                end
-                modules.game_actionbar.configureActionBar(actionBar, (value and hud:isChecked()))
-            end
-        end,
-    },
-    allActionBar79 = {
-        value = false,
-        action = function(value)
-            local huds = {"actionBarShowRight1", "actionBarShowRight2", "actionBarShowRight3"}
+            local huds = { "actionBarShowLeft1", "actionBarShowLeft2", "actionBarShowLeft3" }
             for _, actionBar in pairs(huds) do
                 local hud = panels.actionbars:recursiveGetChildById(actionBar)
                 if value then
@@ -735,31 +746,61 @@ return {
             end
         end,
     },
-    actionTooltip = {
+    allActionBar13                    = {
+        value = true,
+        action = function(value)
+            local huds = { "actionBarShowBottom1", "actionBarShowBottom2", "actionBarShowBottom3" }
+            for _, actionBar in pairs(huds) do
+                local hud = panels.actionbars:recursiveGetChildById(actionBar)
+                if value then
+                    hud:enable()
+                else
+                    hud:disable()
+                end
+                modules.game_actionbar.configureActionBar(actionBar, (value and hud:isChecked()))
+            end
+        end,
+    },
+    allActionBar79                    = {
+        value = false,
+        action = function(value)
+            local huds = { "actionBarShowRight1", "actionBarShowRight2", "actionBarShowRight3" }
+            for _, actionBar in pairs(huds) do
+                local hud = panels.actionbars:recursiveGetChildById(actionBar)
+                if value then
+                    hud:enable()
+                else
+                    hud:disable()
+                end
+                modules.game_actionbar.configureActionBar(actionBar, (value and hud:isChecked()))
+            end
+        end,
+    },
+    actionTooltip                     = {
         value = true,
         action = function(value)
             modules.game_actionbar.updateVisibleOptions('tooltip', value)
         end,
     },
-    showSpellParameters = {
+    showSpellParameters               = {
         value = true,
         action = function(value)
             modules.game_actionbar.updateVisibleOptions('parameter', value)
         end,
     },
-    showHKObjectsBars = {
+    showHKObjectsBars                 = {
         value = true,
         action = function(value)
             modules.game_actionbar.updateVisibleOptions('amount', value)
         end,
     },
-    showAssignedHKButton = {
+    showAssignedHKButton              = {
         value = true,
         action = function(value)
             modules.game_actionbar.updateVisibleOptions('hotkey', value)
         end,
     },
-    actionBarBottomLocked = false,
-    actionBarLeftLocked = false,
-    actionBarRightLocked = false    
+    actionBarBottomLocked             = false,
+    actionBarLeftLocked               = false,
+    actionBarRightLocked              = false
 }
