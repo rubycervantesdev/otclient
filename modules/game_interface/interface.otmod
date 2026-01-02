@@ -57,6 +57,5 @@ Module
     - game_wheel
     - game_exaltationforge
     - game_helper
-    - game_inspect
   @onLoad: init()
   @onUnload: terminate()
