@@ -11,6 +11,29 @@ return {
             modules.client_topmenu.setFpsVisible(value)
         end
     },
+    noFrameCheckBox                   = {
+        value = false,
+        action = function(value, options, controller, panels, extraWidgets)
+            local fpsLabel = panels.graphicsPanel:recursiveGetChildById('fpsLabel')
+            local fpsScroll = panels.graphicsPanel:recursiveGetChildById('backgroundFrameRate')
+
+            if fpsLabel then
+                fpsLabel:setEnabled(not value)
+            end
+            if fpsScroll then
+                fpsScroll:setEnabled(not value)
+            end
+
+            if value then
+                g_app.setMaxFps(240)
+                g_app.setTargetFps(240)
+            else
+                local currentFps = modules.client_options.getOption('backgroundFrameRate') or 240
+                g_app.setMaxFps(currentFps)
+                g_app.setTargetFps(currentFps)
+            end
+        end
+    },
     showPing                          = {
         value = false,
         action = function(value, options, controller, panels, extraWidgets)
@@ -172,16 +195,29 @@ return {
     },
     openMaximized                     = false,
     backgroundFrameRate               = {
-        value = 501,
+        value = 200,
         action = function(value, options, controller, panels, extraWidgets)
-            local text, v = value, value
-            if value <= 0 or value >= 501 then
-                text = 'max'
-                v = 0
+            local noFrameLimit = modules.client_options.getOption('noFrameCheckBox')
+            if noFrameLimit then
+                return
             end
 
-            panels.graphicsPanel:recursiveGetChildById('backgroundFrameRate'):setText(tr('Game framerate limit: %s', text))
+            local v = value
+            if value <= 0 or value > 240 then
+                v = 240
+            end
+
+            local fpsLabel = panels.graphicsPanel:recursiveGetChildById('fpsLabel')
+            if fpsLabel then
+                if value <= 0 or value > 240 then
+                    fpsLabel:setText(tr('Frame Rate Limit: max'))
+                else
+                    fpsLabel:setText(tr('Frame Rate Limit: %d', value))
+                end
+            end
+
             g_app.setMaxFps(v)
+            g_app.setTargetFps(v)
         end
     },
     enableAudio                       = {
@@ -220,6 +256,10 @@ return {
         action = function(value, options, controller, panels, extraWidgets)
             panels.gameMapPanel:setDrawLights(value and options.ambientLight.value < 100)
             panels.graphicsEffectsPanel:recursiveGetChildById('ambientLight'):setEnabled(value)
+            panels.graphicsEffectsPanel:recursiveGetChildById('ambientLightLabel'):setDisabled(not
+                value)
+            panels.graphicsEffectsPanel:recursiveGetChildById('shadowFloorIntensityLabel'):setDisabled(not
+                value)
         end
     },
     limitVisibleDimension             = {
@@ -237,8 +277,8 @@ return {
     ambientLight                      = {
         value = 0,
         action = function(value, options, controller, panels, extraWidgets)
-            panels.graphicsEffectsPanel:recursiveGetChildById('ambientLight'):setText(string.format(
-                'Ambient light: %s%%', value))
+            local ambientLightLabel = panels.graphicsEffectsPanel:recursiveGetChildById('ambientLightLabel')
+            ambientLightLabel:setText(tr('Ambient Light: %s%%', value))
             panels.gameMapPanel:setMinimumAmbientLight(value / 100)
             panels.gameMapPanel:setDrawLights(options.enableLights.value)
         end
@@ -341,8 +381,9 @@ return {
     shadowFloorIntensity              = {
         value = 30,
         action = function(value, options, controller, panels, extraWidgets)
-            panels.graphicsEffectsPanel:recursiveGetChildById('shadowFloorIntensity'):setText(string.format(
-                'Shadow floor Intensity: %s%%', value))
+            local shadowFloorIntensityLabel = panels.graphicsEffectsPanel:recursiveGetChildById(
+                'shadowFloorIntensityLabel')
+            shadowFloorIntensityLabel:setText(tr('Shadow Floor Intensity: %s%%', value))
             panels.gameMapPanel:setShadowFloorIntensity(1 - (value / 100))
         end
     },
@@ -372,13 +413,15 @@ return {
 
             local fadeMode = value == 1
             panels.graphicsEffectsPanel:recursiveGetChildById('floorFading'):setEnabled(fadeMode)
+            panels.graphicsEffectsPanel:recursiveGetChildById('floorFadingLabel'):setEnabled(fadeMode)
         end
     },
     floorFading                       = {
         value = 500,
         action = function(value, options, controller, panels, extraWidgets)
-            panels.graphicsEffectsPanel:recursiveGetChildById('floorFading'):setText(string.format('Floor Fading: %s ms',
-                value))
+            local floorFadingLabel = panels.graphicsEffectsPanel:recursiveGetChildById(
+                'floorFadingLabel')
+            floorFadingLabel:setText(tr('Floor Fading: %s ms', value))
             panels.gameMapPanel:setFloorFading(tonumber(value))
         end
     },
@@ -549,17 +592,17 @@ return {
     setEffectAlphaScroll              = {
         value = 100,
         action = function(value, options, controller, panels, extraWidgets)
+            local effectAlphaScrollLabel = panels.graphicsEffectsPanel:recursiveGetChildById('effectAlphaScrollLabel')
             g_client.setEffectAlpha(value / 100)
-            panels.graphicsEffectsPanel:recursiveGetChildById('setEffectAlphaScroll'):setText(tr('Opacity Effect: %s%%',
-                value))
+            effectAlphaScrollLabel:setText(tr('Effect Opacity: %s%%', value))
         end
     },
     setMissileAlphaScroll             = {
         value = 100,
         action = function(value, options, controller, panels, extraWidgets)
+            local missileAlphaScrollLabel = panels.graphicsEffectsPanel:recursiveGetChildById('missileAlphaScrollLabel')
             g_client.setMissileAlpha(value / 100)
-            panels.graphicsEffectsPanel:recursiveGetChildById('setMissileAlphaScroll'):setText(tr(
-                'Opacity Missile: %s%%', value))
+            missileAlphaScrollLabel:setText(tr('Missile Opacity: %s%%', value))
         end
     },
     distFromCenScrollbar              = {
